@@ -9,6 +9,8 @@ import SecondPage from "./SecondPage";
 import MapPage from "./NewPage";
 import SignUp from "./SignUp";
 import Users from "./Users";
+import ReportWebVitals from "./reportWebVitals";
+import ReporteVoluntarios from "./Biomasa";
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -38,6 +40,7 @@ function App() {
                             {currentUser.nombre === "ADMIN" && (
                                 <Route path="/users" element={<Users />} />
                             )}
+                            <Route path="/reporte" element={<ReporteVoluntarios currentUser={currentUser} onLogout={handleLogout} />} />
                         </>
                     ) : (
                         <Route path="*" element={<Login onLogin={handleLogin} />} />

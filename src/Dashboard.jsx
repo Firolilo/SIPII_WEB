@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from '@apollo/client';
 import { GET_DASHBOARD_DATA } from './graphql/queries';
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polygon } from "react-leaflet";
 import L from 'leaflet';
 import "leaflet/dist/leaflet.css";
 import "./css/Dashboard.css";
@@ -56,6 +56,7 @@ const Dashboard = ({ onLogout, currentUser }) => {
         </div>
     );
 
+    const biomasaData = JSON.parse(localStorage.getItem("biomasaReportes") || "[]");
 
     return (
         <div className="dashboard-container">
@@ -78,6 +79,12 @@ const Dashboard = ({ onLogout, currentUser }) => {
                     onClick={() => handleNavigate("/newPage")}
                 >
                     Simulación
+                </button>
+                <button
+                    className={`button ${location.pathname === "/reporte" ? "active" : ""}`}
+                    onClick={() => handleNavigate("/reporte")}
+                >
+                    Reporte
                 </button>
                 {currentUser && currentUser.nombre === "ADMIN" && (
                     <button
@@ -127,6 +134,26 @@ const Dashboard = ({ onLogout, currentUser }) => {
                                 </Popup>
                             </Marker>
                         )}
+
+                        {/* Zonas de biomasa reportadas */}
+                        {biomasaData.map((reporte, index) => (
+                            <Polygon
+                                key={index}
+                                positions={reporte.coordenadas}
+                                color="#2e7d32"
+                                fillColor="#66bb6a"
+                                fillOpacity={0.5}
+                            >
+                                <Popup>
+                                    <strong>Tipo:</strong> {reporte.tipoBiomasa}<br />
+                                    <strong>Conservación:</strong> {reporte.estadoConservacion}<br />
+                                    <strong>Densidad:</strong> {reporte.densidad}<br />
+                                    <strong>Área:</strong> {reporte.area} km²<br />
+                                    <strong>Fecha:</strong> {reporte.fecha}<br />
+                                    <strong>Obs.:</strong> {reporte.observaciones || "Ninguna"}
+                                </Popup>
+                            </Polygon>
+                        ))}
                     </MapContainer>
                 </div>
 
