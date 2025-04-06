@@ -14,6 +14,11 @@ const MERGE_DISTANCE = 0.02; // Grados (~2km)
 const INACTIVITY_LIMIT = 5; // Ticks
 const MAX_HISTORY_POINTS = 10;
 
+// Constantes para cálculo de voluntarios
+const VOLUNTEERS_PER_FIRE = 5; // Base
+const VOLUNTEERS_PER_INTENSITY = 2; // Por cada punto de intensidad
+const VOLUNTEERS_PER_AREA = 0.1; // Por km² (aproximado)
+
 const MapEvents = ({ addFire }) => {
     const map = useMapEvents({
         click(e) {
@@ -44,6 +49,8 @@ const MapPage = ({ onLogout }) => {
     const [simulationActive, setSimulationActive] = useState(false);
     const [simulationSpeed, setSimulationSpeed] = useState(1);
     const [timeElapsed, setTimeElapsed] = useState(0);
+    const [requiredVolunteers, setRequiredVolunteers] = useState(0);
+    const [mitigationStrategies, setMitigationStrategies] = useState([]);
 
     // Calcular riesgo de incendio
     useEffect(() => {
@@ -261,6 +268,65 @@ const MapPage = ({ onLogout }) => {
         ],
     };
 
+    // Calcular voluntarios necesarios y estrategias de mitigación
+    useEffect(() => {
+        const activeFires = fires.filter(f => f.active);
+
+        // Calcular voluntarios necesarios
+        let volunteers = 0;
+        let totalIntensity = 0;
+        let totalArea = 0;
+
+        activeFires.forEach(fire => {
+            // Estimación de área basada en spread (simplificado)
+            const area = Math.PI * Math.pow(fire.spread * 100, 2) / 100; // km² aproximado
+            volunteers += VOLUNTEERS_PER_FIRE +
+                (fire.intensity * VOLUNTEERS_PER_INTENSITY) +
+                (area * VOLUNTEERS_PER_AREA);
+            totalIntensity += fire.intensity;
+            totalArea += area;
+        });
+
+        setRequiredVolunteers(Math.round(volunteers));
+
+        // Determinar estrategias de mitigación basadas en la situación
+        const strategies = [];
+
+        if (activeFires.length === 0) {
+            strategies.push("No hay incendios activos. Estado de vigilancia normal.");
+        } else {
+            if (activeFires.length > 5) {
+                strategies.push("🔴 Activación de protocolo de emergencia mayor");
+                strategies.push("🚒 Despliegue de bomberos profesionales");
+            } else {
+                strategies.push("🟡 Activación de protocolo de emergencia básico");
+            }
+
+            if (totalIntensity > 10) {
+                strategies.push("🚁 Uso de helicópteros para incendios de alta intensidad");
+            }
+
+            if (totalArea > 50) {
+                strategies.push("🌊 Uso de camiones cisterna y cortafuegos");
+            }
+
+            if (windSpeed > 30) {
+                strategies.push("⚠️ Precaución: Vientos fuertes pueden propagar incendios rápidamente");
+            }
+
+            if (humidity < 30) {
+                strategies.push("💧 Considerar humectación de áreas circundantes");
+            }
+
+            strategies.push(`👥 Se requieren aproximadamente ${Math.round(volunteers)} voluntarios`);
+            strategies.push("📞 Contactar a defensa civil y autoridades locales");
+        }
+
+        setMitigationStrategies(strategies);
+
+    }, [fires, fireRisk]);
+
+
     const position = [-17.8, -61.5]; // Ubicación de San José de Chiquitos
 
     return (
@@ -309,7 +375,18 @@ const MapPage = ({ onLogout }) => {
                     <div className="simulation-info">
                         <span>Tiempo: {timeElapsed}s</span>
                         <span>Fuegos activos: {fires.filter(f => f.active).length}/{MAX_ACTIVE_FIRES}</span>
+                        <span>Voluntarios necesarios: {requiredVolunteers}</span>
                     </div>
+                </div>
+
+                {/* Sección de estrategias de mitigación */}
+                <div className="mitigation-strategies">
+                    <h3>Estrategias de Mitigación Recomendadas:</h3>
+                    <ul>
+                        {mitigationStrategies.map((strategy, index) => (
+                            <li key={index}>{strategy}</li>
+                        ))}
+                    </ul>
                 </div>
 
                 {/* Mapa de OpenStreetMap */}
