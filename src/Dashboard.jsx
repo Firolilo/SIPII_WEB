@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from '@apollo/client';
 import { GET_DASHBOARD_DATA } from './graphql/queries';
@@ -33,16 +33,67 @@ const Dashboard = ({ onLogout, currentUser }) => {
         pollInterval: 30000,
     });
 
+    const [biomasaData, setBiomasaData] = useState([]);
+    const [editingIndex, setEditingIndex] = useState(null);
+    const [editForm, setEditForm] = useState({
+        tipoBiomasa: '',
+        estadoConservacion: '',
+        densidad: '',
+        area: '',
+        fecha: '',
+        observaciones: ''
+    });
+
+    useEffect(() => {
+        const storedData = JSON.parse(localStorage.getItem("biomasaReportes") || "[]");
+        setBiomasaData(storedData);
+    }, []);
+
     const handleNavigate = (path) => {
         navigate(path);
     };
 
-    // Posición central del mapa (usamos las coordenadas del incendio si existe)
+    const handleDeleteBiomasa = (index) => {
+        const newBiomasaData = biomasaData.filter((_, i) => i !== index);
+        setBiomasaData(newBiomasaData);
+        localStorage.setItem("biomasaReportes", JSON.stringify(newBiomasaData));
+    };
+
+    const handleEditBiomasa = (index) => {
+        setEditingIndex(index);
+        setEditForm(biomasaData[index]);
+    };
+
+    const handleEditChange = (e) => {
+        const { name, value } = e.target;
+        setEditForm(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleSaveEdit = () => {
+        const updatedData = [...biomasaData];
+        updatedData[editingIndex] = editForm;
+
+        setBiomasaData(updatedData);
+        localStorage.setItem("biomasaReportes", JSON.stringify(updatedData));
+        setEditingIndex(null);
+    };
+
+    const handleCancelEdit = () => {
+        setEditingIndex(null);
+    };
+
     const fireData = data?.getChiquitosFireRiskData[0];
     const defaultPosition = [-17.8, -61.5];
     const firePosition = fireData?.coordinates ?
         [fireData.coordinates.lat, fireData.coordinates.lng] :
         defaultPosition;
+
+    useEffect(() => {
+        document.title = "Dashboard - SIPII";
+    }, []);
 
     if (loading) return (
         <div className="dashboard-container">
@@ -55,8 +106,6 @@ const Dashboard = ({ onLogout, currentUser }) => {
             <div className="error">Error: {error.message}</div>
         </div>
     );
-
-    const biomasaData = JSON.parse(localStorage.getItem("biomasaReportes") || "[]");
 
     return (
         <div className="dashboard-container">
@@ -112,12 +161,6 @@ const Dashboard = ({ onLogout, currentUser }) => {
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         />
 
-                        {/* Marcador principal de la región */}
-                        <Marker position={defaultPosition} icon={defaultIcon}>
-                            <Popup>Región de Chiquitos</Popup>
-                        </Marker>
-
-                        {/* Marcador de incendio si existe */}
                         {fireData?.fireDetected && fireData?.coordinates && (
                             <Marker
                                 position={[fireData.coordinates.lat, fireData.coordinates.lng]}
@@ -135,7 +178,6 @@ const Dashboard = ({ onLogout, currentUser }) => {
                             </Marker>
                         )}
 
-                        {/* Zonas de biomasa reportadas */}
                         {biomasaData.map((reporte, index) => (
                             <Polygon
                                 key={index}
@@ -145,12 +187,94 @@ const Dashboard = ({ onLogout, currentUser }) => {
                                 fillOpacity={0.5}
                             >
                                 <Popup>
-                                    <strong>Tipo:</strong> {reporte.tipoBiomasa}<br />
-                                    <strong>Conservación:</strong> {reporte.estadoConservacion}<br />
-                                    <strong>Densidad:</strong> {reporte.densidad}<br />
-                                    <strong>Área:</strong> {reporte.area} km²<br />
-                                    <strong>Fecha:</strong> {reporte.fecha}<br />
-                                    <strong>Obs.:</strong> {reporte.observaciones || "Ninguna"}
+                                    {editingIndex === index ? (
+                                        <div className="edit-form">
+                                            <div className="form-group">
+                                                <label>Tipo:</label>
+                                                <input
+                                                    type="text"
+                                                    name="tipoBiomasa"
+                                                    value={editForm.tipoBiomasa}
+                                                    onChange={handleEditChange}
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Conservación:</label>
+                                                <input
+                                                    type="text"
+                                                    name="estadoConservacion"
+                                                    value={editForm.estadoConservacion}
+                                                    onChange={handleEditChange}
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Densidad:</label>
+                                                <input
+                                                    type="text"
+                                                    name="densidad"
+                                                    value={editForm.densidad}
+                                                    onChange={handleEditChange}
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Área (km²):</label>
+                                                <input
+                                                    type="text"
+                                                    name="area"
+                                                    value={editForm.area}
+                                                    onChange={handleEditChange}
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Fecha:</label>
+                                                <input
+                                                    type="text"
+                                                    name="fecha"
+                                                    value={editForm.fecha}
+                                                    onChange={handleEditChange}
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Observaciones:</label>
+                                                <textarea
+                                                    name="observaciones"
+                                                    value={editForm.observaciones}
+                                                    onChange={handleEditChange}
+                                                />
+                                            </div>
+                                            <div className="form-buttons">
+                                                <button onClick={handleSaveEdit} className="save-button">
+                                                    Guardar
+                                                </button>
+                                                <button onClick={handleCancelEdit} className="cancel-button">
+                                                    Cancelar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <strong>Tipo:</strong> {reporte.tipoBiomasa}<br />
+                                            <strong>Conservación:</strong> {reporte.estadoConservacion}<br />
+                                            <strong>Densidad:</strong> {reporte.densidad}<br />
+                                            <strong>Área:</strong> {reporte.area} km²<br />
+                                            <strong>Fecha:</strong> {reporte.fecha}<br />
+                                            <strong>Obs.:</strong> {reporte.observaciones || "Ninguna"}<br /><br />
+                                            <div className="popup-buttons">
+                                                <button
+                                                    onClick={() => handleEditBiomasa(index)}
+                                                    className="edit-button"
+                                                >
+                                                    Editar
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteBiomasa(index)}
+                                                    className="delete-button"
+                                                >
+                                                    Eliminar
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
                                 </Popup>
                             </Polygon>
                         ))}
@@ -162,19 +286,19 @@ const Dashboard = ({ onLogout, currentUser }) => {
                     <div className="stats">
                         <div className="stat-box">
                             <p className="label">Temperatura</p>
-                            <p className="value">{fireData?.weather.temperature.toFixed(1)}°C</p>
+                            <p className="value">{fireData?.weather.temperature?.toFixed(1) || '--'}°C</p>
                         </div>
                         <div className="stat-box">
                             <p className="label">Humedad</p>
-                            <p className="value">{fireData?.weather.humidity}%</p>
+                            <p className="value">{fireData?.weather.humidity || '--'}%</p>
                         </div>
                         <div className="stat-box">
                             <p className="label">Índice Sequía</p>
-                            <p className="value">{fireData?.environmentalFactors.droughtIndex.toFixed(1)}</p>
+                            <p className="value">{fireData?.environmentalFactors?.droughtIndex?.toFixed(1) || '--'}</p>
                         </div>
                         <div className="stat-box">
                             <p className="label">Riesgo Incendio</p>
-                            <p className="value">{fireData?.fireRisk.toFixed(1)}%</p>
+                            <p className="value">{fireData?.fireRisk?.toFixed(1) || '--'}%</p>
                         </div>
                         <div className="stat-box">
                             <p className="label">Incendio Detectado</p>

@@ -27,6 +27,7 @@ const biomassIcon = new L.Icon({
 
 export default function ReporteBiomasa() {
 
+
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({

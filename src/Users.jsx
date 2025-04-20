@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 import "./css/Users.css";
 
-const Users = () => {
+const Users = ({ onLogout, currentUser }) => {
     const [users, setUsers] = useState([]);
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
@@ -17,13 +18,47 @@ const Users = () => {
         setUsers(updatedUsers);
     };
 
+    const handleNavigate = (path) => {
+        navigate(path);
+    };
+
     return (
         <div className="dashboard-container" style={{ backgroundColor: "#f0f0f0" }}>
             <div className="top-bar">
-                <button onClick={() => navigate("/dashboard")}>Inicio</button>
-                <button onClick={() => navigate("/secondPage")}>Datos</button>
-                <button onClick={() => navigate("/newPage")}>Simulación</button>
-                <button onClick={() => navigate("/")} className="logout-button">Cerrar sesión</button>
+                <button
+                    className={`button ${location.pathname === "/dashboard" ? "active" : ""}`}
+                    onClick={() => handleNavigate("/dashboard")}
+                    disabled={location.pathname === "/dashboard"}
+                >
+                    Inicio
+                </button>
+                <button
+                    className={`button ${location.pathname === "/secondPage" ? "active" : ""}`}
+                    onClick={() => handleNavigate("/secondPage")}
+                >
+                    Datos
+                </button>
+                <button
+                    className={`button ${location.pathname === "/newPage" ? "active" : ""}`}
+                    onClick={() => handleNavigate("/newPage")}
+                >
+                    Simulación
+                </button>
+                <button
+                    className={`button ${location.pathname === "/reporte" ? "active" : ""}`}
+                    onClick={() => handleNavigate("/reporte")}
+                >
+                    Reporte
+                </button>
+                {currentUser && currentUser.nombre === "ADMIN" && (
+                    <button
+                        className={`button ${location.pathname === "/users" ? "active" : ""}`}
+                        onClick={() => handleNavigate("/users")}
+                    >
+                        Usuarios
+                    </button>
+                )}
+                <button className="logout-button" onClick={onLogout}>Cerrar sesión</button>
             </div>
 
             <div className="main-content" style={{ paddingTop: "80px" }}>

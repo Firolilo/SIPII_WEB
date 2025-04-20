@@ -9,7 +9,6 @@ import SecondPage from "./SecondPage";
 import MapPage from "./NewPage";
 import SignUp from "./SignUp";
 import Users from "./Users";
-import ReportWebVitals from "./reportWebVitals";
 import ReporteVoluntarios from "./Biomasa";
 
 function App() {
@@ -38,7 +37,7 @@ function App() {
                             <Route path="/secondPage" element={<SecondPage currentUser={currentUser} onLogout={handleLogout} />} />
                             <Route path="/newPage" element={<MapPage currentUser={currentUser} onLogout={handleLogout} />} />
                             {currentUser.nombre === "ADMIN" && (
-                                <Route path="/users" element={<Users />} />
+                                <Route path="/users" element={<Users currentUser={currentUser} onLogout={handleLogout} />} />
                             )}
                             <Route path="/reporte" element={<ReporteVoluntarios currentUser={currentUser} onLogout={handleLogout} />} />
                         </>

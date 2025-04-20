@@ -78,6 +78,12 @@ const SecondPage = ({ currentUser, onLogout }) => {
                 >
                     Simulación
                 </button>
+                <button
+                    className={`button ${location.pathname === "/reporte" ? "active" : ""}`}
+                    onClick={() => handleNavigate("/reporte")}
+                >
+                    Reporte
+                </button>
                 {currentUser && currentUser.nombre === "ADMIN" && (
                     <button
                         className={`button ${location.pathname === "/users" ? "active" : ""}`}

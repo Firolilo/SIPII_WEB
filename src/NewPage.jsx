@@ -34,7 +34,7 @@ const getFireColor = (intensity) => {
     return `rgb(255, ${255 - heat}, 0)`;
 };
 
-const MapPage = ({ onLogout }) => {
+const MapPage = ({ onLogout, currentUser }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const mapRef = useRef();
@@ -128,6 +128,10 @@ const MapPage = ({ onLogout }) => {
                 return mergeCloseFires(newFires);
             });
         }
+    };
+
+    const handleNavigate = (path) => {
+        navigate(path);
     };
 
     const toggleSimulation = () => {
@@ -334,24 +338,37 @@ const MapPage = ({ onLogout }) => {
             <div className="top-bar">
                 <button
                     className={`button ${location.pathname === "/dashboard" ? "active" : ""}`}
-                    onClick={() => navigate("/dashboard")}
+                    onClick={() => handleNavigate("/dashboard")}
                     disabled={location.pathname === "/dashboard"}
                 >
                     Inicio
                 </button>
                 <button
                     className={`button ${location.pathname === "/secondPage" ? "active" : ""}`}
-                    onClick={() => navigate("/secondPage")}
+                    onClick={() => handleNavigate("/secondPage")}
                 >
                     Datos
                 </button>
                 <button
                     className={`button ${location.pathname === "/newPage" ? "active" : ""}`}
-                    onClick={() => navigate("/newPage")}
-                    disabled={location.pathname === "/newPage"}
+                    onClick={() => handleNavigate("/newPage")}
                 >
                     Simulación
                 </button>
+                <button
+                    className={`button ${location.pathname === "/reporte" ? "active" : ""}`}
+                    onClick={() => handleNavigate("/reporte")}
+                >
+                    Reporte
+                </button>
+                {currentUser && currentUser.nombre === "ADMIN" && (
+                    <button
+                        className={`button ${location.pathname === "/users" ? "active" : ""}`}
+                        onClick={() => handleNavigate("/users")}
+                    >
+                        Usuarios
+                    </button>
+                )}
                 <button className="logout-button" onClick={onLogout}>Cerrar sesión</button>
             </div>
 
