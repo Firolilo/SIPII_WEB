@@ -1,7 +1,7 @@
 // TopBar.jsx
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import "./sim.css"; // O si tu CSS de la barra está en otro archivo, ponlo aquí
+import "./sim.styles"; // O si tu CSS de la barra está en otro archivo, ponlo aquí
 
 const TopBar = () => {
     const navigate = useNavigate();

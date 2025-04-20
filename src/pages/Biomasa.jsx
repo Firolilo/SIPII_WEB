@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {MapContainer, TileLayer, Marker, Popup, Polygon, useMapEvents} from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import './css/Biomasa.css';
+import '../styles/Biomasa.css';
 import { useNavigate } from "react-router-dom";
 
 

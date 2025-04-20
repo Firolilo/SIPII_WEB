@@ -1,52 +1,26 @@
-// src/App.js
-import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// src/App.js (final)
+import React from 'react';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { ApolloProvider } from '@apollo/client';
 import client from './apolloClient';
-import Login from "./Login";
-import Dashboard from "./Dashboard";
-import SecondPage from "./SecondPage";
-import MapPage from "./NewPage";
-import SignUp from "./SignUp";
-import Users from "./Users";
-import ReporteVoluntarios from "./Biomasa";
+import { AuthProvider } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
+import AppRoutes from './AppRoutes';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [currentUser, setCurrentUser] = useState(null);
-
-    const handleLogin = (user) => {
-        setIsAuthenticated(true);
-        setCurrentUser(user);
-    };
-
-    const handleLogout = () => {
-        setIsAuthenticated(false);
-        setCurrentUser(null);
-    };
-
     return (
-        <ApolloProvider client={client}>
-            <Router>
-                <Routes>
-                    <Route path="/" element={<Login onLogin={handleLogin} />} />
-                    <Route path="/signup" element={<SignUp />} />
-                    {isAuthenticated ? (
-                        <>
-                            <Route path="/dashboard" element={<Dashboard currentUser={currentUser} onLogout={handleLogout} />} />
-                            <Route path="/secondPage" element={<SecondPage currentUser={currentUser} onLogout={handleLogout} />} />
-                            <Route path="/newPage" element={<MapPage currentUser={currentUser} onLogout={handleLogout} />} />
-                            {currentUser.nombre === "ADMIN" && (
-                                <Route path="/users" element={<Users currentUser={currentUser} onLogout={handleLogout} />} />
-                            )}
-                            <Route path="/reporte" element={<ReporteVoluntarios currentUser={currentUser} onLogout={handleLogout} />} />
-                        </>
-                    ) : (
-                        <Route path="*" element={<Login onLogin={handleLogin} />} />
-                    )}
-                </Routes>
-            </Router>
-        </ApolloProvider>
+        <ErrorBoundary>
+            <ApolloProvider client={client}>
+                <NotificationProvider>
+                    <AuthProvider>
+                        <Router>
+                            <AppRoutes />
+                        </Router>
+                    </AuthProvider>
+                </NotificationProvider>
+            </ApolloProvider>
+        </ErrorBoundary>
     );
 }
 
